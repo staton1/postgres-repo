@@ -1,0 +1,117 @@
+Table Paritioning
+
+Example: Parant table
+create table orders(orderno serial, flightname character varying(100), boarding character varying(100), status character varying(100), source character varying(100));
+insert into orders(fightname,boarding, status, source) values('aircanada','yyz','ontime','employee');
+
+Child Table
+create table online_booking(price int) inherits (orders);
+insert into online_booking(flightname,boarding, status, source,price) values('deltaairline','hdj','ontime','website',3000);
+insert into online_booking(flightname,boarding, status, source,price) values('american+','dfe','ontime','app',5000);
+
+
+Child Table
+create table agent_booking(commision int) inherits (orders);
+insert into agent_booking(flightname,boarding, status, source,commision) values('spiritairline','wrt','ontime','agent01',400);
+insert into agent_booking(flightname,boarding, status, source,commision) values('soutwest','abt','ontime','agent02',200);
+update orders set fightname = 'american' where orderno =3;
+
+
+dvdrental 
+select count(*) from the table customer;
+i can select only the first
+select firstname from customer;
+select firstname, email from customer;
+using the where clus
+select * from customer where id = 40;
+select * from customer where firstname ='staton';
+
+select * from customer where firstname like 'A%'; (this is when you are not sure of the name all the name that start with letter A will be out)
+ group by culunm this is the next statement (using paymentmen table)
+select customer_id,sum(amount) from payment where customer_id=341 group by customer_id; (to know how much  customer with id 341 has paid)
+select customer_id,sum(amount) from payment group by customer_id; (it will calculate the total sum to each customer and what they have paid to rent dvd)
+select customer_id,sum(amount) from payment  group by customer_id having sum(amount)>200; (to know customers that has spent 200)
+
+select store_id as id, manager_id as managerid, address_id as address, lastname as name, from store; (this is use may be the colunm is letty and u need the data for reporting)
+
+
+
+
+A partitioned table is divided into segments, called partitions, that make it easier to manage and query your data. By dividing a large table into smaller partitions, you can improve query performance and control costs by reducing the number of bytes read by a query.
+
+When to Partition a Table
+Tables greater than 2GB should always be considered for partitioning.
+Tables containing historical data, in which new data is added into the newest partition. A typical example is a historical table where only the current month's data is updatable and the other 11 months are read-only.
+
+Both techniques reduce the amount of data used by queries to allow them to run faster. Indices work best on tables with less data churn (INSERTs/UPDATEs/DELETEs), whereas Partitioning speeds up the same operations on huge tables. Partitions are also a great approach for archiving old records.
+
+What are the advantages of partitioning a table?
+Image result for table partitioning advantages and disadvantages
+Partitioning can improve scalability, reduce contention, and optimize performance. It can also provide a mechanism for dividing data by usage pattern. For example, you can archive older data in cheaper data storage.
+
+when a user or a customer book a ticket dependin on the month of his bookin either january booking or febuary booking
+
+Create Table:
+create table bookings(flightno varchar(200),flightname varchar(200),booking_date timestamp);
+
+create table jan_bookings(check(booking_date >= date '2020-01-01' and booking_date <= '2020-01-31')) inherits(bookings); the check constraint will check the condication before creating. it will check if the record in the date is falling in-between.
+
+create table feb_bookings(check(booking_date >= date '2020-02-01' and booking_date <= '2020-02-29')) inherits(bookings);
+
+ create index booking_jan_idx on jan_booking using btree(booking_date);
+
+nano=# create index booking_feb_idx on feb_booking using btree(booking_date); (this is neded sort up the data) 
+
+
+Create Function: 
+create or replace function on_insert() returns trigger as $$
+begin
+  if(new.booking_date >= date '2020-01-01' and new.booking_date <=date '2020-01-31') then
+     insert into jan_booking values(new.*);
+    elsif (new.booking_date >= date '2020-02-01' and new.booking_date <=date '2020-02-29') then
+     insert into feb_booking values(new.*);
+    else
+     raise exception 'Enter valid booking date';
+    end if;
+ 
+    return null;
+end;
+$$ LANGUAGE plpgsql;
+
+\df
+(
+
+Create Trigger:
+
+create trigger booking_entry before insert on bookings for each row execute procedure on_insert();
+
+Insert Records:
+
+nano=# insert into bookings values('dxb102','emirates','2020-02-09');
+INSERT 0 0
+nano=# insert into bookings values('dxb103','emirates','2020-02-15');
+INSERT 0 0
+nano=# insert into bookings values('auh345','etihad','2020-01-10');
+INSERT 0 0
+nano=# select * from bookings;
+ flightno | flightname |    booking_date
+\d to check if trigger is created
+
+select * from from only booking; because of the partiting it will go to the respective month
+march will not enter because it did not meet the condition
+
+
+
+create extension pgcrypto;
+create table test_pgcrypto(id serial, uname text, cryp_pass text, md5_pass text),
+insert into test_crypto(username, crypto_pass, md5_pass) values 
+('abc', crpt('koenig', gen_salt('md5')), md5('koenig;));
+ 
+
+
+
+
+
+
+
+
