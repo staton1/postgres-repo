@@ -3,7 +3,7 @@ Table Paritioning
 Example: Parant table
 create table orders(orderno serial, flightname character varying(100), boarding character varying(100), status character varying(100), source character varying(100));
 insert into orders(fightname,boarding, status, source) values('aircanada','yyz','ontime','employee');
-
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
 Child Table
 create table online_booking(price int) inherits (orders);
 insert into online_booking(flightname,boarding, status, source,price) values('deltaairline','hdj','ontime','website',3000);
